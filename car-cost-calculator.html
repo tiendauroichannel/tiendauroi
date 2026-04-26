@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bảng tính chi phí vận hành xe — Tiền Đâu Rồi?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Be Vietnam Pro',sans-serif;background:#1a1a1a;color:#f0f0f0;min-height:100vh;display:flex;justify-content:center;padding:1.5rem 1rem}
+.calc{max-width:640px;width:100%}
+
+.header{text-align:center;margin-bottom:2rem}
+.header .brand{color:#FCB424;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.header h1{font-size:22px;font-weight:700;line-height:1.4}
+.header .sub{font-size:13px;color:#999;margin-top:6px}
+
+.section-title{font-size:12px;font-weight:600;color:#FCB424;text-transform:uppercase;letter-spacing:0.8px;margin:2rem 0 0.75rem;padding-bottom:6px;border-bottom:1px solid #333}
+
+.car-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.5rem}
+.car-btn{padding:7px 14px;border-radius:6px;border:1px solid #333;background:transparent;font-size:12px;cursor:pointer;transition:all 0.15s;font-family:'Be Vietnam Pro',sans-serif;color:#ccc}
+.car-btn:hover{border-color:#666;color:#fff}
+.car-btn.active{background:#FCB424;border-color:#FCB424;color:#1a1a1a;font-weight:600}
+
+.slider-row{display:flex;align-items:center;gap:10px;margin:0.65rem 0}
+.slider-label{font-size:12px;color:#999;min-width:150px;flex-shrink:0}
+.slider-row input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:#333;border-radius:2px;outline:none}
+.slider-row input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#FCB424;cursor:pointer;border:none}
+.slider-row input[type="range"]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#FCB424;cursor:pointer;border:none}
+.slider-val{font-size:13px;font-weight:500;min-width:75px;text-align:right;color:#f0f0f0}
+
+.toggle-row{display:flex;align-items:center;gap:10px;margin:0.5rem 0}
+.toggle-row label{font-size:12px;color:#ccc;cursor:pointer;display:flex;align-items:center;gap:8px}
+.toggle-row input[type="checkbox"]{width:15px;height:15px;accent-color:#FCB424}
+
+.province-row{display:flex;align-items:center;gap:10px;margin:0.65rem 0}
+.province-row select{flex:1;font-family:'Be Vietnam Pro',sans-serif;font-size:12px;padding:7px 10px;border-radius:6px;border:1px solid #333;background:#252525;color:#f0f0f0;outline:none}
+.province-row select:focus{border-color:#FCB424}
+
+.result-box{background:#252525;border-radius:10px;padding:1.25rem;margin:1.5rem 0 1rem;border:1px solid #333}
+.result-hero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.result-hero .big{font-size:28px;font-weight:700;color:#FCB424}
+.result-hero .tag{font-size:12px;color:#999;background:#333;padding:3px 10px;border-radius:4px}
+.result-monthly{font-size:13px;color:#999;margin-top:6px}
+
+.bar-track{display:flex;height:28px;border-radius:6px;overflow:hidden;margin:1rem 0 0.75rem}
+.bar-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#1a1a1a;min-width:2px;transition:width 0.3s;cursor:default}
+
+.breakdown{margin:0.5rem 0}
+.bd-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #2a2a2a}
+.bd-row:last-child{border-bottom:none}
+.bd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bd-name{font-size:12px;color:#999;margin-left:8px;flex:1}
+.bd-pct{font-size:11px;color:#666;min-width:36px;text-align:right;margin-right:10px}
+.bd-val{font-size:12px;font-weight:500;min-width:95px;text-align:right;color:#f0f0f0}
+
+.note{font-size:11px;color:#666;margin-top:1.25rem;line-height:1.7;border-top:1px solid #2a2a2a;padding-top:1rem}
+
+.footer{text-align:center;margin-top:2rem;padding-top:1rem;border-top:1px solid #2a2a2a}
+.footer a{color:#FCB424;text-decoration:none;font-size:12px;font-weight:600}
+.footer .credit{font-size:11px;color:#666;margin-top:4px}
+
+@media(max-width:500px){
+  .slider-label{min-width:110px;font-size:11px}
+  .slider-val{min-width:60px;font-size:12px}
+  .result-hero .big{font-size:22px}
+  .car-btn{font-size:11px;padding:6px 10px}
+  .header h1{font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="calc" id="app">
+  <div class="header">
+    <div class="brand">Tiền Đâu Rồi?</div>
+    <h1>Nuôi xe hết bao nhiêu mỗi năm?</h1>
+    <div class="sub">Kéo thanh trượt để xem chi phí thực tế theo cách bạn sử dụng</div>
+  </div>
+
+  <p class="section-title">Chọn dòng xe</p>
+  <div class="car-selector" id="carSelector"></div>
+
+  <p class="section-title">Thông số sử dụng</p>
+  <div class="province-row">
+    <span class="slider-label">Tỉnh/thành đăng ký</span>
+    <select id="province" onchange="calc()">
+      <option value="hcm">TP. Hồ Chí Minh</option>
+      <option value="hn">Hà Nội</option>
+      <option value="other" selected>Tỉnh khác</option>
+    </select>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Quãng đường/ngày</span>
+    <input type="range" min="10" max="150" value="40" step="5" id="kmDay" oninput="calc()">
+    <span class="slider-val" id="kmDayVal">40 km</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Giá xăng (đ/lít)</span>
+    <input type="range" min="18000" max="32000" value="23500" step="500" id="fuelPrice" oninput="calc()">
+    <span class="slider-val" id="fuelPriceVal">23.500đ</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Gửi xe tháng</span>
+    <input type="range" min="0" max="5000000" value="1500000" step="100000" id="parkMonth" oninput="calc()">
+    <span class="slider-val" id="parkMonthVal">1.5trđ</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Gửi xe lượt/tháng</span>
+    <input type="range" min="0" max="60" value="15" step="1" id="parkTrips" oninput="calc()">
+    <span class="slider-val" id="parkTripsVal">15</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Phí gửi/lượt</span>
+    <input type="range" min="10000" max="100000" value="30000" step="5000" id="parkPerTrip" oninput="calc()">
+    <span class="slider-val" id="parkPerTripVal">30.000đ</span>
+  </div>
+  <div class="slider-row">
+    <span class="slider-label">Trạm BOT/tháng</span>
+    <input type="range" min="0" max="30" value="2" step="1" id="botTrips" oninput="calc()">
+    <span class="slider-val" id="botTripsVal">2</span>
+  </div>
+
+  <p class="section-title">Chi phí tuỳ chọn</p>
+  <div class="toggle-row">
+    <label><input type="checkbox" id="chkBhvc" checked onchange="calc()"> Bảo hiểm vật chất (thân vỏ)</label>
+  </div>
+  <div class="toggle-row">
+    <label><input type="checkbox" id="chkBhtn" checked onchange="calc()"> Bảo hiểm tự nguyện TNDS mở rộng</label>
+  </div>
+
+  <div class="result-box">
+    <p class="section-title" style="margin-top:0;border:none;padding:0;margin-bottom:0.75rem">Tổng chi phí vận hành / năm</p>
+    <div class="result-hero">
+      <span class="big" id="totalYear">0đ</span>
+      <span class="tag" id="carTag"></span>
+    </div>
+    <div class="result-monthly" id="totalMonth"></div>
+    <div class="bar-track" id="barTrack"></div>
+    <div class="breakdown" id="breakdown"></div>
+  </div>
+
+  <p class="note" id="noteText"></p>
+
+  <div class="footer">
+    <a href="https://youtube.com/@tiendauroi" target="_blank">youtube.com/@tiendauroi</a>
+    <div class="credit">Công cụ mang tính tham khảo · Số liệu ước tính 2026</div>
+  </div>
+</div>
+
+<script>
+const CARS=[
+  {name:"Honda City RS",price:560e6,cc:1500,fuel:6.5,type:"sedan",bhvc:.015},
+  {name:"Toyota Vios",price:480e6,cc:1500,fuel:6.2,type:"sedan",bhvc:.015},
+  {name:"Hyundai Accent",price:440e6,cc:1500,fuel:6,type:"sedan",bhvc:.015},
+  {name:"Mazda CX-5",price:750e6,cc:2e3,fuel:7.8,type:"suv",bhvc:.017},
+  {name:"Honda CR-V",price:820e6,cc:1500,fuel:7.5,type:"suv",bhvc:.017},
+  {name:"Toyota C. Cross",price:720e6,cc:1800,fuel:7,type:"suv",bhvc:.016},
+  {name:"Xpander",price:560e6,cc:1500,fuel:7.2,type:"mpv",bhvc:.015},
+  {name:"KIA Seltos",price:600e6,cc:1500,fuel:7,type:"suv",bhvc:.016},
+  {name:"VinFast VF 5",price:458e6,cc:0,fuel:15.5,type:"ev",bhvc:.015},
+];
+const COLORS=["#FCB424","#1D9E75","#E8853D","#D4537E","#6BAF3D","#5A9BD5","#9B7FD0","#888"];
+let sel=0;
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('vi-VN');
+const fmtS=n=>{
+  if(n>=1e9)return(n/1e9).toFixed(1).replace('.0','')+'tỷ';
+  if(n>=1e6)return(n/1e6).toFixed(1).replace('.0','')+'tr';
+  if(n>=1e3)return Math.round(n/1e3)+'k';
+  return fmt(n);
+};
+function renderBtns(){
+  $('carSelector').innerHTML=CARS.map((c,i)=>`<button class="car-btn${i===sel?' active':''}" onclick="selCar(${i})">${c.name}</button>`).join('');
+}
+function selCar(i){sel=i;renderBtns();calc();}
+function calc(){
+  const c=CARS[sel],prov=$('province').value,km=+$('kmDay').value,fp=+$('fuelPrice').value,pm=+$('parkMonth').value,pt=+$('parkTrips').value,pp=+$('parkPerTrip').value,bt=+$('botTrips').value,bv=$('chkBhvc').checked,bn=$('chkBhtn').checked;
+  $('kmDayVal').textContent=km+' km';
+  $('fuelPriceVal').textContent=fmt(fp)+'đ';
+  $('parkMonthVal').textContent=fmtS(pm)+'đ';
+  $('parkTripsVal').textContent=pt;
+  $('parkPerTripVal').textContent=fmt(pp)+'đ';
+  $('botTripsVal').textContent=bt;
+  $('carTag').textContent=c.name;
+  const kmY=km*365,isEV=c.type==='ev';
+  let fuel;
+  if(isEV){fuel=Math.round(kmY*c.fuel/100*3355)}
+  else{fuel=Math.round(kmY*c.fuel/100*fp)}
+  const fix=290000+1560000+437000;
+  const pkM=pm*12,pkT=pt*pp*12,bot=bt*50000*12,wash=26*70000;
+  const maint=isEV?2e6:(c.cc<=1500?3e6:5e6);
+  const op=fuel+pkM+pkT+bot+wash+maint;
+  let bhvc=bv?Math.round(c.price*c.bhvc):0;
+  let bhtn=bn?700000:0;
+  const opt=bhvc+bhtn;
+  const total=fix+op+opt;
+  $('totalYear').textContent=fmt(total)+'đ';
+  $('totalMonth').textContent='~ '+fmt(Math.round(total/12))+'đ / tháng  ·  ~ '+fmt(Math.round(total/365))+'đ / ngày';
+  const items=[
+    {name:isEV?"Điện năng":"Nhiên liệu",val:fuel,col:COLORS[0]},
+    {name:"Gửi xe (tháng)",val:pkM,col:COLORS[1]},
+    {name:"Gửi xe (lượt)",val:pkT,col:COLORS[2]},
+    {name:"Phí BOT",val:bot,col:COLORS[3]},
+    {name:"Rửa xe",val:wash,col:COLORS[4]},
+    {name:"Bảo dưỡng",val:maint,col:COLORS[5]},
+    {name:"Chi phí cố định",val:fix,col:COLORS[6]},
+    {name:"Bảo hiểm tuỳ chọn",val:opt,col:COLORS[7]},
+  ].filter(i=>i.val>0);
+  $('barTrack').innerHTML=items.map(i=>{
+    const p=i.val/total*100;
+    return`<div class="bar-seg" style="width:${p}%;background:${i.col}" title="${i.name}: ${fmt(i.val)}đ">${p>8?fmtS(i.val):''}</div>`;
+  }).join('');
+  $('breakdown').innerHTML=items.map(i=>{
+    const p=i.val/total*100;
+    return`<div class="bd-row"><span class="bd-dot" style="background:${i.col}"></span><span class="bd-name">${i.name}</span><span class="bd-pct">${Math.round(p)}%</span><span class="bd-val">${fmt(i.val)}đ</span></div>`;
+  }).join('');
+  const n=[];
+  n.push(`Giá niêm yết: ${fmtS(c.price)}đ`);
+  if(isEV)n.push(`Tiêu thụ: ${c.fuel} kWh/100km · Giá điện: 3.355đ/kWh`);
+  else n.push(`Tiêu thụ: ${c.fuel}L/100km · Quãng đường/năm: ${fmt(kmY)} km`);
+  n.push('Đăng kiểm 290k · Bảo trì đường bộ 1.560k · BHTNDS bắt buộc 437k');
+  n.push('Rửa xe 2 tuần/lần · BOT 50.000đ/lượt');
+  $('noteText').innerHTML=n.join('<br>');
+}
+renderBtns();calc();
+</script>
+</body>
+</html>
