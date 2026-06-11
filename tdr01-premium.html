@@ -628,6 +628,16 @@
       <div id="action-steps"></div>
     </div>
 
+    <!-- 5. KẾT LUẬN -->
+    <div id="conclusion-section" style="background:var(--dark);border:2px solid var(--yellow);border-radius:16px;padding:24px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="font-size:20px;">⚖️</span>
+        <span style="font-size:14px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;">Kết luận cho anh/chị</span>
+      </div>
+      <div id="conclusion-verdict" style="font-size:22px;font-weight:800;margin-bottom:14px;"></div>
+      <div id="conclusion-reasons" style="font-size:14px;line-height:1.8;color:var(--text);"></div>
+    </div>
+
     <!-- PREMIUM FOOTER -->
     <div style="background:var(--soft);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:16px;text-align:center;">
       <div style="font-size:13px;color:var(--text);font-weight:600;margin-bottom:4px;">Cảm ơn anh/chị đã tin tưởng Tiền Đâu Rồi</div>
@@ -702,9 +712,11 @@ function goStep(n) {
 }
 
 function fmt(n) {
-  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + ' tỷ';
-  if (n >= 100) return Math.round(n) + ' triệu';
-  return n.toFixed(1) + ' triệu';
+  var sign = n < 0 ? '-' : '';
+  var a = Math.abs(n);
+  if (a >= 1000) return sign + (a / 1000).toFixed(1).replace(/\.0$/, '') + ' tỷ';
+  if (a >= 100) return sign + Math.round(a) + ' triệu';
+  return sign + a.toFixed(1) + ' triệu';
 }
 
 function calculate() {
@@ -909,6 +921,130 @@ function calculate() {
     '<div style="font-size:13px;color:var(--muted);line-height:1.6;">Nếu tiết kiệm <strong>' + fmt(totalPotentialSave) + '/năm</strong> và đầu tư lãi kép 8%, sau 5 năm có thêm: <strong style="color:var(--good);">' + fmt(totalPotentialSave * 5 * 1.22) + '</strong></div></div></div>';
 
   document.getElementById('action-steps').innerHTML = stepsHTML;
+
+  // 5. Kết luận
+  let verdictHTML = '';
+  let reasonsHTML = '';
+  const freeIncome = income - fixed - totalMonth;
+  const grabSaveMonth = diff5 > 0 ? (diff5 / 12) : 0;
+  const absDiff = Math.abs(diff5);
+
+  if (pctIncome <= 20 && diff5 <= 0) {
+    // 1. Giữ xe — dưới 20% + rẻ hơn Grab
+    verdictHTML = '<span style="color:var(--good);">✅ Giữ xe — hợp lý với tài chính hiện tại</span>';
+    reasonsHTML = '<div style="background:var(--soft);border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--good);">' + Math.round(pctIncome) + '% thu nhập</strong><br>' +
+      '• Rẻ hơn Grab <strong style="color:var(--good);">' + fmt(absDiff) + '/năm</strong> → giữ xe OK<br>' +
+      '</div></div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">Việc cần làm:</strong> Kiểm soát chi phí ẩn (bảo hiểm, bảo dưỡng, gửi xe) để tối ưu thêm. Duy trì quỹ dự phòng ít nhất 3 tháng chi phí xe.' +
+      '</div>';
+
+  } else if (pctIncome > 20 && pctIncome <= 25 && diff5 <= 0) {
+    // 2. Giữ xe, kiểm soát chi phí ẩn — 20–25% + rẻ hơn Grab
+    verdictHTML = '<span style="color:var(--good);">✅ Giữ xe — nhưng cần kiểm soát chi phí ẩn</span>';
+    reasonsHTML = '<div style="background:var(--soft);border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--warn);">' + Math.round(pctIncome) + '% thu nhập</strong> (vừa ngưỡng 20–25%)<br>' +
+      '• Rẻ hơn Grab <strong style="color:var(--good);">' + fmt(absDiff) + '/năm</strong> → giữ xe OK<br>' +
+      '</div></div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">Việc cần làm:</strong><br>' +
+      '• Giảm bảo hiểm thân vỏ: từ ~7.5 triệu → tìm gói 5–6 triệu<br>' +
+      '• Giảm bảo dưỡng: từ ~' + fmt(maintain) + ' → tự làm bảo dưỡng nhỏ, tiết kiệm ~50%<br>' +
+      '• Xây quỹ dự phòng ít nhất 3 tháng chi phí xe (' + fmt(totalMonth * 3) + ')' +
+      '</div>';
+
+  } else if (pctIncome > 25 && pctIncome <= 35 && diff5 > 0) {
+    // 3. Cân nhắc lại — 25–35% + đắt hơn Grab
+    verdictHTML = '<span style="color:var(--warn);">⚠️ Cân nhắc lại — xe đang gây áp lực tài chính</span>';
+    reasonsHTML = '<div style="background:var(--soft);border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--warn);">' + Math.round(pctIncome) + '% thu nhập</strong> (vượt 25%)<br>' +
+      '• Đắt hơn Grab <strong style="color:var(--danger);">' + fmt(diff5) + '/năm</strong> → nên kết hợp<br>' +
+      '</div></div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">3 bước giảm áp lực:</strong><br><br>' +
+      '<strong style="color:var(--yellow);">1.</strong> Dùng Grab 2–3 ngày/tuần → tiết kiệm <strong style="color:var(--good);">' + fmt(grabSaveMonth * 0.4) + '/tháng</strong><br><br>' +
+      '<strong style="color:var(--yellow);">2.</strong> Cân nhắc xe điện (chi phí nhiên liệu giảm 60–70%)<br><br>' +
+      '<strong style="color:var(--yellow);">3.</strong> Nếu đang trả góp: trả trước thêm 10% gốc → giảm lãi đáng kể' +
+      '</div>';
+
+  } else if (pctIncome > 50 || freeIncome < 0) {
+    // 6. Nên bán xe — trên 50% hoặc thu nhập âm
+    verdictHTML = '<span style="color:var(--danger);">🛑 Chiếc xe này đang vượt quá khả năng tài chính</span>';
+    reasonsHTML = '<div style="background:#1a0a0a;border:1px solid #5a1a1a;border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--danger);margin-bottom:6px;font-weight:700;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--danger);">' + Math.round(pctIncome) + '% thu nhập</strong> (gấp ' + (pctIncome/20).toFixed(1) + 'x ngưỡng an toàn)<br>' +
+      '• Sau khi trừ chi phí xe + chi phí cố định, còn lại: <strong style="color:var(--danger);">' + fmt(freeIncome) + '/tháng</strong>' + (freeIncome < 0 ? ' — <span style="color:var(--danger);">đang chi nhiều hơn thu nhập</span>' : '') + '<br>';
+    if (diff5 > 0) {
+      reasonsHTML += '• Đắt hơn Grab <strong style="color:var(--danger);">' + fmt(diff5) + '/năm</strong><br>';
+    }
+    reasonsHTML += '• Tổng chi phí 5 năm: <strong style="color:var(--danger);">' + fmt(totalYear * 5) + '</strong><br>' +
+      '</div></div>' +
+      '<div style="background:#1a0a0a;border:1px solid #5a1a1a;border-radius:var(--radius);padding:16px;margin-bottom:12px;text-align:center;">' +
+      '<div style="font-size:16px;font-weight:800;color:var(--danger);margin-bottom:8px;">Anh/chị nên cân nhắc bán xe</div>' +
+      '<div style="font-size:13px;color:var(--text);line-height:1.6;">Đây không phải lời khuyên dễ nghe. Nhưng với ' + Math.round(pctIncome) + '% thu nhập đổ vào xe' + (freeIncome < 0 ? ' và số dư âm mỗi tháng' : '') + ', anh/chị đang đánh đổi toàn bộ tài chính cho một chiếc xe.</div>' +
+      '</div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">Nếu bán xe, anh/chị được gì:</strong><br>' +
+      '• Giải phóng <strong style="color:var(--good);">' + fmt(totalMonth) + '/tháng</strong> — tiền đó đủ để đi Grab thoải mái và còn dư<br>' +
+      '• Thu về tiền bán xe (dù mất giá) → trả nợ hoặc đầu tư<br>' +
+      '• Không còn lo lãi trả góp, bảo hiểm, bảo dưỡng, gửi xe<br><br>' +
+      '<strong style="color:var(--text);">Nếu chưa sẵn sàng bán:</strong><br>' +
+      '• Tối thiểu: chuyển sang xe rẻ hơn (xe cũ 200–300 triệu) → giảm 50–60% chi phí<br>' +
+      '• Kết hợp Grab 3–4 ngày/tuần → giảm ngay ' + fmt(grabSaveMonth * 0.6) + '/tháng<br>' +
+      '• Tăng thu nhập là ưu tiên số 1 — ở mức này, tiết kiệm chi phí nhỏ không đủ giải quyết vấn đề' +
+      '</div>';
+
+  } else if (pctIncome > 35) {
+    // 4. Nên thận trọng — trên 35%
+    verdictHTML = '<span style="color:var(--danger);">🚨 Nên thận trọng — xe đang chiếm quá nhiều thu nhập</span>';
+    reasonsHTML = '<div style="background:var(--soft);border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--danger);">' + Math.round(pctIncome) + '% thu nhập</strong> (gần gấp ' + (pctIncome/20).toFixed(1) + 'x ngưỡng 20%)<br>' +
+      '• Sau khi trừ chi phí xe + chi phí cố định, còn lại: <strong style="color:var(--danger);">' + fmt(freeIncome) + '/tháng</strong>' + (freeIncome < 0 ? ' — <span style="color:var(--danger);">anh/chị đang chi nhiều hơn thu nhập</span>' : '') + '<br>';
+    if (diff5 > 0) {
+      reasonsHTML += '• Đắt hơn Grab <strong style="color:var(--danger);">' + fmt(diff5) + '/năm</strong><br>';
+    }
+    reasonsHTML += '</div></div>' +
+      '<div style="background:#1a0a0a;border:1px solid #3a1a1a;border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:13px;color:var(--danger);font-weight:700;margin-bottom:6px;">Câu hỏi cần tự trả lời:</div>' +
+      '<div style="font-size:14px;color:var(--text);font-style:italic;">"Anh/chị giữ xe vì thật sự cần di chuyển, hay vì tiện và thể diện?"</div>' +
+      '</div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">Nếu thật sự cần xe:</strong> Tìm xe nhỏ hơn, tiết kiệm hơn (xe cũ 300–400 triệu) → giảm 40–50% chi phí sở hữu<br><br>' +
+      '<strong style="color:var(--text);">Nếu giữ vì tiện:</strong> Cân nhắc xe điện (giảm 30% tổng chi phí sở hữu) hoặc kết hợp Grab 3–4 ngày/tuần<br><br>' +
+      '<strong style="color:var(--text);">Ở mức ' + Math.round(pctIncome) + '% thu nhập:</strong> Chỉ cần 1 biến cố nhỏ (mất việc, xe hỏng, bệnh tật) là tài chính mất kiểm soát.' +
+      '</div>';
+
+  } else {
+    // 5. Chưa nguy hiểm nhưng chưa tối ưu — 20–25% + đắt hơn Grab
+    verdictHTML = '<span style="color:var(--warn);">⚠️ Chưa nguy hiểm — nhưng chưa tối ưu</span>';
+    reasonsHTML = '<div style="background:var(--soft);border-radius:var(--radius);padding:14px;margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Số liệu của anh/chị</div>' +
+      '<div style="font-size:13px;line-height:1.8;">' +
+      '• Chi phí năm: <strong>' + fmt(totalYear) + '</strong> — chiếm <strong style="color:var(--warn);">' + Math.round(pctIncome) + '% thu nhập</strong> (vừa 20–25%)<br>';
+    if (diff5 > 0) {
+      reasonsHTML += '• Đắt hơn Grab <strong style="color:var(--warn);">' + fmt(diff5) + '/năm</strong> → chưa tối ưu<br>';
+    }
+    reasonsHTML += '</div></div>' +
+      '<div style="font-size:13px;line-height:1.8;color:var(--muted);">' +
+      '<strong style="color:var(--text);">Việc cần làm:</strong><br>' +
+      '• Dùng Grab 1–2 ngày/tuần → tiết kiệm <strong style="color:var(--good);">' + fmt(grabSaveMonth * 0.3) + '/tháng</strong><br>' +
+      '• Tối ưu chi phí vận hành (bảo dưỡng, gửi xe, bảo hiểm)<br>' +
+      '• Xây quỹ dự phòng trước khi tính thêm khoản lớn' +
+      '</div>';
+  }
+
+  document.getElementById('conclusion-verdict').innerHTML = verdictHTML;
+  document.getElementById('conclusion-reasons').innerHTML = reasonsHTML;
 
   window.scrollTo(0, 0);
 }
